@@ -3,6 +3,57 @@
 ## Architecture
 ![architecture diagram](docs/architecture.png)
 
+## Overview
+The AWS ETL (Extract, Transform, Load) pipeline described here is designed to efficiently process banking data in CSV format. The pipeline automates the transformation and loading of this data into a DynamoDB table for further analysis, *in this case for the sake of example, we are using mock banking data*. It leverages various AWS services such as S3, Lambda, and Glue to provide a scalable and reliable solution.
+
+1. Data Ingestion:
+    - The pipeline starts when a CSV file containing banking data is uploaded to the specified S3 bucket.
+    - The CSV file should be placed in the input/ directory within the S3 bucket.
+
+2. Triggering Lambda through S3 Event:
+    - An S3 event notification is set up to detect the new file upload in the input/ directory.
+    - The S3 event triggers a Lambda function responsible for orchestrating the ETL pipeline.
+
+3. Glue Job Execution:
+    - The Lambda function initiates the execution of a Glue Job, a fully managed ETL service provided by AWS.
+    - The Glue Job reads the CSV file from the S3 bucket and performs the necessary data transformations.
+    - The transformed data is then loaded into the specified DynamoDB table.
+
+4. Completion Notification:
+    - After the Glue Job finishes processing and loading the data, it triggers another Lambda function.
+
+5. CSV Archive:
+    - The Lambda function moves the processed CSV file from the input/ directory to the archive/ directory within the same S3 bucket.
+    - This archival step helps maintain a clean and organized storage of processed files.
+
+6. API Gateway Integration:
+    - An API Gateway is set up to provide an interface for the React frontend to interact with the ETL pipeline.
+    - The API Gateway has two routes:
+        - Query Route: This route is associated with a Query Lambda function. It allows the frontend to retrieve processed data from the DynamoDB table.
+        - Update Route: This route is associated with an Update Lambda function. It enables the frontend to update or modify data in the DynamoDB table.
+
+7. React Frontend Integration:
+    - The React frontend, hosted in an S3 bucket, communicates with the API Gateway to fetch data and perform updates.
+    - The frontend can make requests to the API Gateway's query and update routes, triggering the respective Lambda functions.
+
+## React Frontend
+
+![The home of the react frontend](./docs/frontend-all.png)
+
+*Screenshot 1: The home of the react frontend, with a subset of the sample data displayed, roughly 250,000 transactions--the largest size I can upload to GitHub without using LFS.*
+
+![The react frontend allows the user to filter the data by month and year](./docs/frontend-filter.png)
+
+*Screenshot 2: The react frontend allows the user to filter the data by month and year.*
+
+![The react frontend allows the user to update the fraud status of a transaction](./docs/frontend-fraud.png)
+
+*Screenshot 3: The react frontend allows the user to update the fraud status of a transaction.*
+
+![An animated gif of the react frontend in action](./docs/frontend.gif)
+
+*GIF 1: An animated gif of the react frontend in action.*
+
 ## Setup
 ### Pre-Requisites
 It is expected that you have familiarity with AWS API Gateway, AWS Glue, AWS Lambda, AWS S3 prior to this project.
@@ -47,15 +98,8 @@ To deploy the fullstack with helper script, simply run the following steps:
 
 To kick off the ETL pipeline, you will need to upload the sample data to the S3 bucket. You can upload the sample data by running the following command:
 ```sh
-aws s3 cp ./backend/sample_data/bank_data.csv s3://<your-bucket-name>/input/
+aws s3 cp ./backend/sample_data/bank_data.csv s3://<your-bucket-name>/input/bank_data.csv
 ```
-
-## Useful Commands
-
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk synth`       emits the synthesized CloudFormation template
- * `go test`         run unit tests
 
 ## Sample API Request
 
@@ -131,3 +175,10 @@ Request Body:
 ```json
 Item updated successfully
 ```
+
+## Useful Commands
+
+ * `cdk deploy`      deploy this stack to your default AWS account/region
+ * `cdk diff`        compare deployed stack with current state
+ * `cdk synth`       emits the synthesized CloudFormation template
+ * `go test`         run unit tests

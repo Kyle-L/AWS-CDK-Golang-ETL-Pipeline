@@ -70,4 +70,4 @@ fi
 echo -e "${GREEN}Deployment complete!${NC}"
 echo ""
 echo -e "${BLUE}API URL: $API_URL${NC}"
-echo -e "${BLUE}Frontend URL: https://$BUCKET_NAME-frontend.s3.amazonaws.com${NC}"
+echo -e "${BLUE}Frontend URL: https://$BUCKET_NAME.s3-website-us-east-1.amazonaws.com${NC}"
